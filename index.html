@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Supabase Upload Example</title>
+</head>
+<body>
+  <h1>Upload Notes (Supabase)</h1>
+
+  <input type="file" id="fileInput" />
+  <button onclick="uploadFile()">Upload</button>
+
+  <h2>Uploaded Files</h2>
+  <ul id="fileList"></ul>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Replace with your Supabase project URL and anon key
+    const supabaseUrl = "https://gshpbwgfehncdlcomqbl.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzaHBid2dmZWhuY2RsY29tcWJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTA5NjgsImV4cCI6MjA3MjQ4Njk2OH0.hFF9rFyDtqBs-nxceNbu1sSUxSPgSlMdejkjszBK_jg";
+    const supabase = supabasejs.createClient(supabaseUrl, supabaseKey);
+
+    async function uploadFile() {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) {
+        alert("Choose a file first!");
+        return;
+      }
+
+      // Upload to bucket "uploads"
+      const { data, error } = await supabase
+        .storage
+        .from("uploads")
+        .upload("public/" + file.name, file, { upsert: true });
+
+      if (error) {
+        console.error("Upload failed:", error);
+        alert("Upload failed! Check console.");
+        return;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase
+        .storage
+        .from("uploads")
+        .getPublicUrl("public/" + file.name);
+
+      // Show in list
+      const li = document.createElement("li");
+      li.innerHTML = `<a href="${urlData.publicUrl}" target="_blank">${file.name}</a>`;
+      document.getElementById("fileList").appendChild(li);
+
+      alert("Upload successful!");
+    }
+  </script>
+</body>
+</html>
