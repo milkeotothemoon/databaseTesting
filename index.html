@@ -62,7 +62,7 @@
     data.forEach(file => {
       const { data: urlData } = client
         .storage
-        .from("uploads")
+        .from("testing")
         .getPublicUrl(file.name);
 
       const li = document.createElement("li");
@@ -76,3 +76,4 @@
 </script>
 </body>
 </html>
+
