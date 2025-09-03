@@ -16,45 +16,63 @@
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Your Supabase project URL and anon key
-    const supabaseUrl = "https://gshpbwgfehncdlcomqbl.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzaHBid2dmZWhuY2RsY29tcWJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTA5NjgsImV4cCI6MjA3MjQ4Njk2OH0.hFF9rFyDtqBs-nxceNbu1sSUxSPgSlMdejkjszBK_jg";
+  const supabaseUrl = "https://gshpbwgfehncdlcomqbl.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzaHBid2dmZWhuY2RsY29tcWJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTA5NjgsImV4cCI6MjA3MjQ4Njk2OH0.hFF9rFyDtqBs-nxceNbu1sSUxSPgSlMdejkjszBK_jg";
+  const client = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // ✅ FIX: use supabase.createClient, not supabasejs.createClient
-    const client = supabase.createClient(supabaseUrl, supabaseKey);
+  client.storage.from("testing")
 
-    async function uploadFile() {
-      const file = document.getElementById("fileInput").files[0];
-      if (!file) {
-        alert("Choose a file first!");
-        return;
-      }
+  async function uploadFile() {
+    const file = document.getElementById("fileInput").files[0];
+    if (!file) {
+      alert("Choose a file first!");
+      return;
+    }
 
-      // Upload to bucket "uploads"
-      const { data, error } = await client
-        .storage
-        .from("uploads")
-        .upload("public/" + file.name, file, { upsert: true });
+    const { error } = await client
+      .storage
+      .from("testing")
+      .upload(file.name, file, { upsert: true }); // ✅ root level
 
-      if (error) {
-        console.error("Upload failed:", error);
-        alert("Upload failed! Check console.");
-        return;
-      }
+    if (error) {
+      console.error("Upload failed:", error);
+      alert("Upload failed! Check console.");
+      return;
+    }
 
-      // Get public URL
+    loadFiles(); // refresh list after upload
+    alert("Upload successful!");
+  }
+
+  async function loadFiles() {
+    // list files in root of uploads bucket
+    const { data, error } = await client
+      .storage
+      .from("testing")
+      .list("", { limit: 100 });
+
+    if (error) {
+      console.error("Error listing files:", error);
+      return;
+    }
+
+    const list = document.getElementById("fileList");
+    list.innerHTML = ""; // clear before adding
+
+    data.forEach(file => {
       const { data: urlData } = client
         .storage
         .from("uploads")
-        .getPublicUrl("public/" + file.name);
+        .getPublicUrl(file.name);
 
-      // Show in list
       const li = document.createElement("li");
       li.innerHTML = `<a href="${urlData.publicUrl}" target="_blank">${file.name}</a>`;
-      document.getElementById("fileList").appendChild(li);
+      list.appendChild(li);
+    });
+  }
 
-      alert("Upload successful!");
-    }
-  </script>
+  // ✅ Load existing files on startup
+  loadFiles();
+</script>
 </body>
 </html>
