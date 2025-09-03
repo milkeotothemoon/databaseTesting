@@ -16,10 +16,12 @@
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Replace with your Supabase project URL and anon key
+    // Your Supabase project URL and anon key
     const supabaseUrl = "https://gshpbwgfehncdlcomqbl.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzaHBid2dmZWhuY2RsY29tcWJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTA5NjgsImV4cCI6MjA3MjQ4Njk2OH0.hFF9rFyDtqBs-nxceNbu1sSUxSPgSlMdejkjszBK_jg";
-    const supabase = supabasejs.createClient(supabaseUrl, supabaseKey);
+
+    // ✅ FIX: use supabase.createClient, not supabasejs.createClient
+    const client = supabase.createClient(supabaseUrl, supabaseKey);
 
     async function uploadFile() {
       const file = document.getElementById("fileInput").files[0];
@@ -29,7 +31,7 @@
       }
 
       // Upload to bucket "uploads"
-      const { data, error } = await supabase
+      const { data, error } = await client
         .storage
         .from("uploads")
         .upload("public/" + file.name, file, { upsert: true });
@@ -41,7 +43,7 @@
       }
 
       // Get public URL
-      const { data: urlData } = supabase
+      const { data: urlData } = client
         .storage
         .from("uploads")
         .getPublicUrl("public/" + file.name);
